@@ -22,6 +22,7 @@ The project consists of two main components:
 - **datasource.yml**: Configures Grafana to use the SQLite database containing the Nmap scan data as the data source.
 - **/data/nmap_results.db**: location in container for the SQLite DB.
 
+
 ## Usage
 
 To get started with nmap-did-what, ensure you have Docker and Docker Compose installed on your system.
@@ -31,7 +32,7 @@ Follow these steps to deploy the environment:
 1. **Clone the repository**
 
 ```
-git clone https://github.com/yourusername/nmap-did-what.git
+git clone https://github.com/hackertarget/nmap-did-what.git
 ```
 
 2. **Parse Nmap XML output**
