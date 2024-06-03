@@ -33,7 +33,7 @@ def parse_nmap_xml(xml_file):
     for host in root.findall('host'):
         total_hosts += 1
         ip = host.find('address').get('addr', '')
-        
+        #print(host.tag, " ", host.text)
         hostname_elems = host.findall('hostnames/hostname')
         hostname = hostname_elems[0].get('name', '') if hostname_elems else ''
         
@@ -47,9 +47,9 @@ def parse_nmap_xml(xml_file):
         ports_open = 0
         ports_closed = 0
         ports_filtered = 0
-
+        
         ports = []
-        for port in host.find('ports').findall('port'):
+        for port in host.find('ports').findall('port') if ports else '':
             port_id = port.get('portid')
             protocol = port.get('protocol')
             state = port.find('state').get('state')
@@ -100,7 +100,7 @@ def parse_nmap_xml(xml_file):
                 'ssl_issuer': ssl_issuer
             })
 
-        extraports = host.find('ports').find('extraports')
+        extraports = host.find('ports').find('extraports') if ports else ''
         if extraports:
             extraports_count = int(extraports.get('count', '0'))
             extraports_state = extraports.get('state', '')
