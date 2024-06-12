@@ -49,66 +49,68 @@ def parse_nmap_xml(xml_file):
         ports_filtered = 0
 
         ports = []
-        for port in host.find('ports').findall('port'):
-            port_id = port.get('portid')
-            protocol = port.get('protocol')
-            state = port.find('state').get('state')
-            if state == 'open':
-                ports_open += 1
-                total_open_ports += 1
-            elif state == 'closed':
-                ports_closed += 1
-            elif state == 'filtered':
-                ports_filtered += 1
+        ports_element = host.find('ports')
+        if ports_element is not None:
+            for port in ports_element.findall('port'):
+                port_id = port.get('portid')
+                protocol = port.get('protocol')
+                state = port.find('state').get('state')
+                if state == 'open':
+                    ports_open += 1
+                    total_open_ports += 1
+                elif state == 'closed':
+                    ports_closed += 1
+                elif state == 'filtered':
+                    ports_filtered += 1
 
-            service = port.find('service')
-            service_name = service.get('name', None) if service else None
-            service_product = service.get('product', None) if service else None
-            service_version = service.get('version', None) if service else None
-            service_ostype = service.get('ostype', None) if service else None
-            service_info = (service_product if service_product else '') + (' ' + service_version if service_version else '')
-            http_title = None
-            ssl_common_name = None
-            ssl_issuer = None
+                service = port.find('service')
+                service_name = service.get('name', None) if service else None
+                service_product = service.get('product', None) if service else None
+                service_version = service.get('version', None) if service else None
+                service_ostype = service.get('ostype', None) if service else None
+                service_info = (service_product if service_product else '') + (' ' + service_version if service_version else '')
+                http_title = None
+                ssl_common_name = None
+                ssl_issuer = None
 
-            scripts = port.findall('script')
-            for script in scripts:
-                if script.get('id') == 'http-title':
-                    http_title = script.get('output')
-                elif script.get('id') == 'ssl-cert':
-                    for table in script.findall('table'):
-                        if table.get('key') == 'subject':
-                            cn_elem = table.find("elem[@key='commonName']")
-                            if cn_elem is not None:
-                                ssl_common_name = cn_elem.text
-                        elif table.get('key') == 'issuer':
-                            issuer_elems = {elem.get('key'): elem.text for elem in table.findall('elem')}
-                            if 'commonName' in issuer_elems:
-                                ssl_issuer = f"{issuer_elems.get('commonName')} {issuer_elems.get('organizationName', '')}".strip()
+                scripts = port.findall('script')
+                for script in scripts:
+                    if script.get('id') == 'http-title':
+                        http_title = script.get('output')
+                    elif script.get('id') == 'ssl-cert':
+                        for table in script.findall('table'):
+                            if table.get('key') == 'subject':
+                                cn_elem = table.find("elem[@key='commonName']")
+                                if cn_elem is not None:
+                                    ssl_common_name = cn_elem.text
+                            elif table.get('key') == 'issuer':
+                                issuer_elems = {elem.get('key'): elem.text for elem in table.findall('elem')}
+                                if 'commonName' in issuer_elems:
+                                    ssl_issuer = f"{issuer_elems.get('commonName')} {issuer_elems.get('organizationName', '')}".strip()
 
-            if service_ostype and os == 'Unknown':
-                os = service_ostype
-            
-            ports.append({
-                'port': port_id,
-                'protocol': protocol,
-                'state': state,
-                'service_name': service_name,
-                'service_info': service_info,
-                'http_title': http_title,
-                'ssl_common_name': ssl_common_name,
-                'ssl_issuer': ssl_issuer
-            })
+                if service_ostype and os == 'Unknown':
+                    os = service_ostype
+                
+                ports.append({
+                    'port': port_id,
+                    'protocol': protocol,
+                    'state': state,
+                    'service_name': service_name,
+                    'service_info': service_info,
+                    'http_title': http_title,
+                    'ssl_common_name': ssl_common_name,
+                    'ssl_issuer': ssl_issuer
+                })
 
-        extraports = host.find('ports').find('extraports')
-        if extraports:
-            extraports_count = int(extraports.get('count', '0'))
-            extraports_state = extraports.get('state', '')
-            if extraports_state == 'closed':
-                ports_closed += extraports_count
-            elif extraports_state == 'filtered':
-                ports_filtered += extraports_count
-            ports_tested += extraports_count
+            extraports = ports_element.find('extraports')
+            if extraports:
+                extraports_count = int(extraports.get('count', '0'))
+                extraports_state = extraports.get('state', '')
+                if extraports_state == 'closed':
+                    ports_closed += extraports_count
+                elif extraports_state == 'filtered':
+                    ports_filtered += extraports_count
+                ports_tested += extraports_count
 
         host_start_time = host.get('starttime')
         host_end_time = host.get('endtime')
