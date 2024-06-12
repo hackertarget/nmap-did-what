@@ -103,7 +103,7 @@ def parse_nmap_xml(xml_file):
                 })
 
             extraports = ports_element.find('extraports')
-            if extraports:
+            if len(extraports):
                 extraports_count = int(extraports.get('count', '0'))
                 extraports_state = extraports.get('state', '')
                 if extraports_state == 'closed':
